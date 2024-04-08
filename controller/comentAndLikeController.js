@@ -9,7 +9,7 @@ const commentOnPost = async (req, res) => {
   // checking if all variables needed for the requests are present
   if (!postId || !userId || !comment) {
     console.log({ message: "Invalid request", status: "Failed" });
-    res.status(403).json({ message: "Invalid request", status: "Failed" });
+    res.status(400).json({ message: "Invalid request", status: "Failed" });
   }
 
   // Checking if any user has commented on the current post
@@ -96,7 +96,7 @@ const likePost = async (req, res) => {
   // checking if all variables needed for the requests are present
   if (!postId || !userId) {
     console.log({ message: "Invalid request", status: "Failed" });
-    res.status(403).json({ message: "Invalid request", status: "Failed" });
+    res.status(400).json({ message: "Invalid request", status: "Failed" });
   }
 
   // Checking if any user has liked the current post
@@ -114,7 +114,7 @@ const likePost = async (req, res) => {
         status: "Failed",
       });
       res
-        .status(500)
+        .status(403)
         .json({ message: "User already like the post", status: "Failed" });
     } else {
       // Complete the like request
@@ -199,7 +199,7 @@ const commentPerPost = async (req, res) => {
   // checking if all variables needed for the requests are present
   if (!postId) {
     console.log({ message: "Invalid request", status: "Failed" });
-    res.status(403).json({ message: "Invalid request", status: "Failed" });
+    res.status(400).json({ message: "Invalid request", status: "Failed" });
   }
 
   // if post already been commented by anyone
@@ -208,7 +208,7 @@ const commentPerPost = async (req, res) => {
   // if no, inform the user
   if (!postExist) {
     console.log({ message: "Post not exist", status: "Failed" });
-    res.status(500).json({ message: "Post not exist", status: "Failed" });
+    res.status(404).json({ message: "Post not exist", status: "Failed" });
   }
 
   // if yes,
@@ -235,7 +235,7 @@ const likePerPost = async (req, res) => {
   // checking if all variables needed for the requests are present
   if (!postId) {
     console.log({ message: "Invalid request", status: "Failed" });
-    res.status(403).json({ message: "Invalid request", status: "Failed" });
+    res.status(400).json({ message: "Invalid request", status: "Failed" });
   }
 
   // if post already been liked by anyone
@@ -244,7 +244,7 @@ const likePerPost = async (req, res) => {
   // if no, feed the user back
   if (!postExist) {
     console.log({ message: "Post not exist", status: "Failed" });
-    res.status(500).json({ message: "Post not exist", status: "Failed" });
+    res.status(404).json({ message: "Post not exist", status: "Failed" });
   }
 
   // if yes, compute like per post and send response back to the client

@@ -2,6 +2,7 @@ const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const cookie = require("cookie");
+const { removePwd } = require("../middleware/pwdRemover");
 
 const registerUser = async (req, res) => {
   const {
@@ -32,7 +33,7 @@ const registerUser = async (req, res) => {
       message: "Incomplete field, Kindly provide the missing field",
     });
     return res
-      .status(404)
+      .status(400)
       .json({ message: "Incomplete field, Kindly provide the missing field" });
   }
 
@@ -41,7 +42,7 @@ const registerUser = async (req, res) => {
   if (ifUserExist) {
     console.log({ message: `User already exist ${ifUserExist?.email}` });
     return res
-      .status(404)
+      .status(403)
       .json({ message: `User already exist ${ifUserExist?.email}` });
   }
 
@@ -68,11 +69,12 @@ const registerUser = async (req, res) => {
       if (data) {
         console.log({
           message: "User account created successfully",
+          status: "success",
           data: data,
         });
         return res
           .status(200)
-          .json({ message: "User account created successfully", data: data });
+          .json({ message: "User account created successfully", status: "success", data: data });
       }
     })
     .catch((err) => {
@@ -92,7 +94,7 @@ const loginUser = async (req, res) => {
   if (!email || !password) {
     console.log({ message: "Username or Password is required" });
     return res
-      .status(404)
+      .status(400)
       .json({ message: "Username or Password is required" });
   }
 
@@ -102,23 +104,26 @@ const loginUser = async (req, res) => {
   if (!userValid) {
     console.log({ message: "Invalid email address, Access denied." });
     return res
-      .status(400)
+      .status(401)
       .json({ message: "Invalid email address, Access denied." });
   }
 
   const passwordCheck = await bcrypt.compare(password, userValid?.password);
   if (!passwordCheck) {
     console.log({ message: "Invalid password" });
-    return res.status(403).json({ message: "Invalid password" });
+    return res.status(105).json({ message: "Invalid password" });
   }
 
   const token = await jwt.sign({ email, password }, process.env.AUTH_KEY, {
     expiresIn: 60 * 10,
   });
 
+  const result = await removePwd(userValid._doc);
+
   console.log({
     message: "Credentials confirmed, Access granted.",
-    data: userValid,
+    status: "success",
+    data: result,
   });
 
   res.setHeader("token", token);
@@ -133,37 +138,9 @@ const loginUser = async (req, res) => {
   );
   return res.status(200).json({
     message: "Credentials confirmed, Access granted.",
-    data: userValid,
+    status: "success",
+    data: result,
   });
-
-  // .then(async (result) => {
-  //   if (result) {
-  //     const passwordCheck = await bcrypt.compare(password, result?.password);
-
-  //     if (!passwordCheck) {
-  //       console.log({ message: "Invalid password" });
-  //       return res.status(403).json({ message: "Invalid password" });
-  //     }
-  //     console.log({
-  //       message: "Credentials confirmed, Access granted.",
-  //       data: result,
-  //     });
-  //     return res
-  //       .status(200)
-  //       .json({
-  //         message: "Credentials confirmed, Access granted.",
-  //         data: result,
-  //       });
-  //   }
-  // })
-  // .catch((err) => {
-  //   if (err) {
-  //     console.log({ message: "Invalid email address, Access denied." });
-  //     return res
-  //       .status(200)
-  //       .json({ message: "Invalid email address, Access denied." });
-  //   }
-  // });
 };
 
 module.exports = { registerUser, loginUser };

@@ -11,7 +11,7 @@ const followUser = async (req, res, next) => {
   if (!followerId || !followId) {
     console?.log({ message: "Incomplete request", status: "Failed" });
     return res
-      ?.status(404)
+      ?.status(400)
       ?.json({ message: "Incomplete request", status: "Failed" });
   }
 
@@ -33,7 +33,7 @@ const followUser = async (req, res, next) => {
   if (followerExist && followIdExist) {
     console?.log({ message: "Already a follower", status: "Failed" });
     return res
-      ?.status(500)
+      ?.status(403)
       ?.json({ message: "Already a follower", status: "Failed" });
   }
 
@@ -189,7 +189,7 @@ const get_follows_followers = async (req, res) => {
   if (!userId) {
     console?.log({ message: "Incomplete request", status: "Failed" });
     return res
-      ?.status(404)
+      ?.status(400)
       ?.json({ message: "Incomplete request", status: "Failed" });
   }
 

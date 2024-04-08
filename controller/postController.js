@@ -14,7 +14,7 @@ const createPost = async (req, res) => {
   if (!post || !user) {
     console?.log({ message: "Invalid request due to missing field(s)" });
     return res
-      ?.status(403)
+      ?.status(400)
       ?.json({ message: "Invalid request due to missing field(s)" });
   }
 
@@ -25,10 +25,10 @@ const createPost = async (req, res) => {
     // Sending post notification to the user
     io?.emit("notification", `${user} has just make a post, ${post}`);
 
-    console?.log({ message: "Post created successfully", data: userPost });
+    console?.log({ message: "Post created successfully", status: "success", data: userPost });
     return res
       ?.status(200)
-      ?.json({ message: "Post created successfully", data: userPost });
+      ?.json({ message: "Post created successfully", status: "success", data: userPost });
   } catch (error) {
     console?.log({ message: "Failed to create post", error: error });
     return res
@@ -44,7 +44,7 @@ const userFeed = async (req, res) => {
   if (!id) {
     console?.log({ message: "Invalid request due to missing field" });
     return res
-      ?.status(403)
+      ?.status(400)
       ?.json({ message: "Invalid request due to missing field" });
   }
 
@@ -52,7 +52,7 @@ const userFeed = async (req, res) => {
   if (!followedUsers) {
     console?.log({ status: "Failed", message: "No followed user" });
     return res
-      ?.status(500)
+      ?.status(404)
       ?.json({ status: "Failed", message: "No followed user" });
   }
 
