@@ -1,30 +1,32 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 // mongoose.connect('mongodb://localhost:27017/test', {
 //   useNewUrlParser: true,
 //   useUnifiedTopology: true
 // })
 
-const postSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema(
+  {
     post: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     image: {
-        type: String,
+      type: String,
     },
     video: {
-        type: String,
+      type: String,
     },
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "user",
     },
-},
-{
+  },
+  {
     timestamps: true,
-}
-)
+  }
+);
 
-const postModel = mongoose.model('post', postSchema)
+const postModel = mongoose.model("post", postSchema);
 
-module.exports = postModel
+module.exports = postModel;

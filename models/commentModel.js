@@ -1,30 +1,69 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const commentSchema = new mongoose.Schema({
+const subCommentSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "user",
+    },
     comment: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     image: {
-        type: String,
+      type: String,
     },
     video: {
-        type: String,
+      type: String,
     },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
-    },
-    post: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'post',
-    },
-},
-{
+    likes: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          unique: true,
+          ref: "user",
+        },
+      },
+    ],
+  },
+  {
     timestamps: true,
-}
-)
+  }
+);
 
-const commentModel = mongoose.model('comment', commentSchema)
+const subLikeSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      unique: true,
+      required: true,
+      ref: "user",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = commentModel
+const commentSchema = new mongoose.Schema({
+  post: {
+    type: mongoose.Schema.Types.ObjectId,
+    unique: true,
+    required: true,
+    ref: "post",
+  },
+  comments: [subCommentSchema],
+  likes: [
+    {
+      type: subLikeSchema,
+      unique: true,
+    },
+  ],
+});
+
+const comment_like_Model = mongoose.model("comment_like", commentSchema);
+// const commentModel = mongoose.model("comment", commentSchema);
+// const likeModel = mongoose.model("comment", commentSchema);
+
+module.exports = { comment_like_Model };

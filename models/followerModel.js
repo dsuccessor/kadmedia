@@ -1,26 +1,47 @@
-const mongoose = require('mongoose')
-// mongoose.connect('mongodb://localhost:27017/test', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true
-// })
+const mongoose = require("mongoose");
 
-const followerSchema = new mongoose.Schema({
-    follower: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'user',
+const followSubSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      unique: true,
+      ref: "user",
     },
-    follow: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'user',
-    },
-},
-{
+  },
+  {
     timestamps: true,
-}
-)
+  }
+);
 
-const followerModel = mongoose.model('follower', followerSchema)
+const followerSubSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      unique: true,
+      ref: "user",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = followerModel
+const followerSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      unique: true,
+      required: true,
+      ref: "user",
+    },
+    follows: [followSubSchema],
+    followers: [followerSubSchema],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const followerModel = mongoose.model("follower", followerSchema);
+
+module.exports = { followerModel };
