@@ -10,6 +10,8 @@ const userRoute = require("./routes/userRoute");
 const postRoute = require("./routes/postRoute");
 const followRoute = require("./routes/followRoute");
 const commentAndLike = require("./routes/commentandLikeRoute");
+var admin = require("firebase-admin");
+var serviceAccount = require("./libs/kadmedia-firebase-adminsdk-23j3m-58bac062ba.json");
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -39,18 +41,24 @@ io.on("connection", (socket) => {
   console.log("A user is connected");
 });
 
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 // Middleware to pass socket io to the controller
-const socketIo = (req, res, next) => {
-  req.notifySocket = io;
+const notificationInstance = (req, res, next) => {
+  req.socketIo = io;
+  req.fcmAdmin = admin;
   next();
 };
 
 // Apis
 app.use("/api/user", userRoute);
-app.use("/api/post", socketIo, postRoute);
-app.use("/api/follow", socketIo, followRoute);
-app.use("/api/comment", socketIo, commentAndLike);
-app.use("/api/like", socketIo, commentAndLike);
+app.use("/api/post", notificationInstance, postRoute);
+app.use("/api/follow", notificationInstance, followRoute);
+app.use("/api/comment", notificationInstance, commentAndLike);
+app.use("/api/like", notificationInstance, commentAndLike);
 
 // Establishing server connection
 const serverInstance = server.listen(port, (error) => {

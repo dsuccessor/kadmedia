@@ -10,6 +10,7 @@ const registerUser = async (req, res) => {
     firstname,
     email,
     phone,
+    fcmtoken,
     passport,
     gender,
     password,
@@ -24,7 +25,8 @@ const registerUser = async (req, res) => {
     !phone ||
     !passport ||
     !gender ||
-    !password
+    !password ||
+    !fcmtoken
   ) {
     console.log({
       message: "Incomplete field, Kindly provide the missing field",

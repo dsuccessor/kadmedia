@@ -1,9 +1,11 @@
 const { followerModel } = require("../models/followerModel");
+const userModel = require("../models/userModel");
 
 // Well commented
 const followUser = async (req, res, next) => {
   const { followerId, followId } = req?.query;
-  const { io } = req?.notifySocket;
+  const { io } = req?.socketIo;
+  const { admin } = req?.fcmAdmin;
 
   // If the id of the first user (follower) and second user (followee) is not specified
   if (!followerId || !followId) {
@@ -72,6 +74,18 @@ const followUser = async (req, res, next) => {
         `${followerId} has just followed your account ${followId}`
       );
 
+      // Retrieve user's FCM token from the database
+      const userDetails = await userModel.findById(followId);
+      const fcmToken = userDetails.fcmtoken;
+
+      // Send push notification using FCM
+      await admin.messaging().sendToDevice(fcmToken, {
+        notification: {
+          title: "New Follow Notification",
+          body: `${followerId} just follow you`,
+        },
+      });
+
       // Send feedback to the client side
       console?.log({
         message: "Followed Successfull",
@@ -135,6 +149,18 @@ const followUser = async (req, res, next) => {
         "notification",
         `${followerId} has just followed your account ${followId}`
       );
+
+      // Retrieve user's FCM token from the database
+      const userDetails = await userModel.findById(followId);
+      const fcmToken = userDetails.fcmtoken;
+
+      // Send push notification using FCM
+      await admin.messaging().sendToDevice(fcmToken, {
+        notification: {
+          title: "New Follow Notification",
+          body: `${followerId} just follow you`,
+        },
+      });
 
       // Send feedback to the client side
       console?.log({

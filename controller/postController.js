@@ -5,7 +5,8 @@ const postModel = require("../models/postModel");
 const createPost = async (req, res) => {
   const { post, image, video } = req?.body;
   const { user } = req?.query;
-  const { io } = req?.notifySocket;
+  const { io } = req?.socketIo;
+  const { admin } = req?.fcmAdmin;
 
   //   console?.log(user);
 
