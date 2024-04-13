@@ -1,8 +1,8 @@
 const userModel = require("../models/userModel");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const cookie = require("cookie");
 const { removePwd } = require("../middleware/pwdRemover");
+const redis = require("redis");
+const setResHeader = require("../middleware/setHeader");
 
 const registerUser = async (req, res) => {
   const {
@@ -72,9 +72,11 @@ const registerUser = async (req, res) => {
           status: "success",
           data: data,
         });
-        return res
-          .status(200)
-          .json({ message: "User account created successfully", status: "success", data: data });
+        return res.status(200).json({
+          message: "User account created successfully",
+          status: "success",
+          data: data,
+        });
       }
     })
     .catch((err) => {
@@ -89,6 +91,12 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  const reqRoute = req?.catchingRoute;
+
+  const redisClient = await redis
+    .createClient()
+    .on("error", (err) => console.log("Redis Client Error", err))
+    .connect();
 
   // Checking if username and password is supplied from the client
   if (!email || !password) {
@@ -111,36 +119,47 @@ const loginUser = async (req, res) => {
   const passwordCheck = await bcrypt.compare(password, userValid?.password);
   if (!passwordCheck) {
     console.log({ message: "Invalid password" });
-    return res.status(105).json({ message: "Invalid password" });
+    return res.status(403).json({ message: "Invalid password" });
   }
-
-  const token = await jwt.sign({ email, password }, process.env.AUTH_KEY, {
-    expiresIn: 60 * 10,
-  });
 
   const result = await removePwd(userValid._doc);
 
-  console.log({
-    message: "Credentials confirmed, Access granted.",
-    status: "success",
-    data: result,
-  });
+  await redisClient
+    .setEx(reqRoute, 3600, JSON.stringify(result))
+    .then(async (response) => {
+      await setResHeader(res, { email, password });
 
-  res.setHeader("token", token);
-  res.setHeader(
-    "Set-Cookie",
-    cookie.serialize("auth-token", token, {
-      maxAge: 60 * 10,
-      httpOnly: true,
-      sameSite: "none",
-      path: "/api",
+      console.log({
+        message: "Login Data Catched",
+        status: "succes",
+        data: response,
+      });
+
+      console.log({
+        message: "Credentials confirmed, Access granted.",
+        status: "success",
+        data: result,
+      });
+
+      return res.status(200).json({
+        message: "Credentials confirmed, Access granted.",
+        status: "success",
+        data: result,
+      });
     })
-  );
-  return res.status(200).json({
-    message: "Credentials confirmed, Access granted.",
-    status: "success",
-    data: result,
-  });
+    .catch((err) => {
+      console.log({
+        message: "Failed to Catched Login Data",
+        status: "failed",
+        error: err,
+      });
+
+      return res.status(500).json({
+        message: "Failed to Catched Login Data",
+        status: "failed",
+        error: err,
+      });
+    });
 };
 
 module.exports = { registerUser, loginUser };

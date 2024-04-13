@@ -12,9 +12,14 @@ const followRoute = require("./routes/followRoute");
 const commentAndLike = require("./routes/commentandLikeRoute");
 var admin = require("firebase-admin");
 var serviceAccount = require("./libs/kadmedia-firebase-adminsdk-23j3m-58bac062ba.json");
+// const redis = require("redis");
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Initialize Redis client
+// const redisClient = redis.createClient();
+// console.log("catching client 1", redisClient);
 
 // Establishing mongoose connection
 mongoose
@@ -47,14 +52,20 @@ admin.initializeApp({
 });
 
 // Middleware to pass socket io to the controller
-const notificationInstance = (req, res, next) => {
+const notificationInstance = async (req, res, next) => {
+  // const redisClient = redis.createClient();
+  // redisClient.on("error", (err) => {
+  //   return console.log("Redis Client Error", err);
+  // });
+  // await redisClient.connect();
   req.socketIo = io;
   req.fcmAdmin = admin;
+  // req.redisConnect = redisClient;
   next();
 };
 
 // Apis
-app.use("/api/user", userRoute);
+app.use("/api/user", notificationInstance, userRoute);
 app.use("/api/post", notificationInstance, postRoute);
 app.use("/api/follow", notificationInstance, followRoute);
 app.use("/api/comment", notificationInstance, commentAndLike);

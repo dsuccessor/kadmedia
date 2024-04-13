@@ -5,8 +5,18 @@ const {
 } = require("../controller/followController");
 const { userAuth } = require("../middleware/auth");
 const router = express.Router();
+const { sendCatchedData } = require("../middleware/catching");
 
 router.post("/followuser", userAuth, followUser);
-router.get("/followersdata", userAuth, get_follows_followers);
+router.get(
+  "/followersdata",
+  userAuth,
+  (req, res, next) => {
+    req.catchingRoute = "followersdata";
+    return next();
+  },
+  sendCatchedData,
+  get_follows_followers
+);
 
 module.exports = router;

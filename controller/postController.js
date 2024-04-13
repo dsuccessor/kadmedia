@@ -1,12 +1,16 @@
 const { userAuth } = require("../middleware/auth");
 const { followerModel } = require("../models/followerModel");
 const postModel = require("../models/postModel");
+const redis = require("redis");
+
+const redisCLient = redis.createClient();
 
 const createPost = async (req, res) => {
   const { post, image, video } = req?.body;
   const { user } = req?.query;
   const { io } = req?.socketIo;
   const { admin } = req?.fcmAdmin;
+  const { reqRoute } = req?.catchingRoute;
 
   //   console?.log(user);
 
@@ -22,13 +26,40 @@ const createPost = async (req, res) => {
     const userPost = new postModel({ post, image, video, user });
     await userPost?.save();
 
+    const catchReq = await redisCLient.setEx(
+      reqRoute,
+      3600,
+      JSON.stringify(userPost)
+    );
+    if (catchReq) {
+      console.log({
+        status: "Success",
+        message: "Catched successfully",
+        data: JSON.parse(catchReq),
+      });
+    }
+
+    if (!catchReq) {
+      console.log({
+        status: "Failed",
+        message: "Catching Failed",
+        data: JSON.parse(catchReq),
+      });
+    }
+
     // Sending post notification to the user
     io?.emit("notification", `${user} has just make a post, ${post}`);
 
-    console?.log({ message: "Post created successfully", status: "success", data: userPost });
-    return res
-      ?.status(200)
-      ?.json({ message: "Post created successfully", status: "success", data: userPost });
+    console?.log({
+      message: "Post created successfully",
+      status: "success",
+      data: userPost,
+    });
+    return res?.status(200)?.json({
+      message: "Post created successfully",
+      status: "success",
+      data: userPost,
+    });
   } catch (error) {
     console?.log({ message: "Failed to create post", error: error });
     return res
